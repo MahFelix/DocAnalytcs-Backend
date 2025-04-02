@@ -33,7 +33,7 @@ app = FastAPI()
 # Configura CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["https://doc-analytics-frontend.vercel.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
