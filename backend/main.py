@@ -33,7 +33,7 @@ app = FastAPI()
 # Configura CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://doc-analytics-frontend.vercel.app/"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,7 +99,7 @@ async def analyze_with_gemini(text: str) -> dict:
         Foque em tópicos principais, pontos-chave e detalhes importantes.
         
         Documento:
-        {text[:20000]}  # Limita o tamanho para evitar erros
+        {text[:30000]}  # Limita o tamanho para evitar erros
         """
         
         # Chamada CORRETA - sem await na resposta
