@@ -9,18 +9,18 @@ import google.generativeai as genai
 import numpy as np
 from PIL import Image
 import pytesseract
-import fitz  # PyMuPDF
+import fitz  
 import faiss
 from dotenv import load_dotenv
-import datetime  # Adicionado import faltante
-
+import datetime  
+from fastapi import Body
+from fastapi import Form  
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-# Carrega variáveis de ambiente
+
 load_dotenv()
 
-# Configura a API do Gemini - a chave deve estar no .env
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("Chave da API Gemini não encontrada no arquivo .env")
@@ -34,8 +34,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )
 
@@ -66,9 +65,9 @@ def extract_text(file: UploadFile) -> str:
         raise HTTPException(status_code=400, detail="Tipo de arquivo não suportado")
 
 async def generate_embeddings(text: str) -> List[float]:
-    """Gera embeddings usando a API do Gemini"""
+   
     try:
-        # Gera embeddings usando o modelo de embedding do Gemini
+       
         result = genai.embed_content(
             model="models/embedding-001",
             content=text,
@@ -176,9 +175,31 @@ async def analyze_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/search")
-async def search_documents(query: str, limit: int = 5):
-    results = await search_similar_documents(query, limit)
-    return {"results": results}
+async def search_documents(
+    query: str = Form(None),  # Para FormData
+    limit: int = Form(5),     # Para FormData
+    data: Dict = Body(None)   # Para JSON
+):
+    # Se vier como FormData
+    if query is not None:
+        return await handle_search(query, limit)
+    
+    # Se vier como JSON
+    if data and 'query' in data:
+        query = data['query']
+        limit = data.get('limit', 5)
+        return await handle_search(query, limit)
+    
+    raise HTTPException(status_code=422, detail="Query parameter is required")
+
+async def handle_search(query: str, limit: int):
+    """Função auxiliar para processar a busca"""
+    try:
+        results = await search_similar_documents(query, limit)
+        return {"results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 @app.get("/api/health")
 async def health_check():
