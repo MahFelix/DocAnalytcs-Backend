@@ -139,6 +139,10 @@ async def search_similar_documents(query: str, k: int = 5) -> List[Dict]:
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documentos: {str(e)}")
+    
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "message": "Service is healthy"}
 
 @app.post("/api/analyze")
 async def analyze_document(file: UploadFile = File(...)):
